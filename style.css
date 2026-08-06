@@ -1,0 +1,19 @@
+ul {
+    border: 5px solid var(--color-text, #4a4a4a);
+    border-radius: 15px;
+    margin: 1vh;
+    padding: 1vw;
+    list-style: none;
+    background-color: var(--color-background, #f0f0f0);
+}
+
+li {
+    margin: 0.5vh;
+    padding: 0.5vw;
+    border-radius: 10px;
+}
+
+li:hover {
+    background-color: var(--color-hover, #e0e0e0);
+    cursor: pointer;
+}

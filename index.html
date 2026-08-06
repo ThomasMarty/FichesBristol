@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width">
+        
+        <title>Fiches Bristol</title>
+        <link rel="icon" href="icon.svg">
+
+        <link rel="stylesheet" href="sakura.css">
+        <link rel="stylesheet" href="style.css">
+
+        <link rel="manifest" href="manifest.json">
+    </head>
+    <body>
+        <h1>Fiches Bristol</h1>
+        <p>Sélectionnez une fiche pour la visionner</p>
+
+        <section id="fiches-list"></section>
+
+        <input type="file" id="file-input" accept=".json" style="display: none;">
+
+        <script src="app.js" defers></script>
+        <script>
+            if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("sw.js").then(
+                (registration) => {
+                console.log("Enregistrement du service worker réussi :", registration);
+                },
+                (error) => {
+                console.error(`Échec de l'enregistrement du service worker : ${error}`);
+                },
+            );
+            } else {
+            console.error("Les service workers ne sont pas pris en charge.");
+            }
+        </script>
+    </body>
+</html>

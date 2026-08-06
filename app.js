@@ -1,0 +1,1 @@
+const CLE_STOCKAGE = "fiches-bristol"
