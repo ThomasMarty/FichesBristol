@@ -1,13 +1,21 @@
-const version = "2026.06.02-01";
+const version = "2026.08.11";
 const CACHE_NAME = `fiches-bristol-${version}`;
 
 const APP_STATIC_RESOURCES = [
     "/",
-    "/index.html",
-    "/sakura.css",
-    "/style.css",
     "/app.js",
-    "/icon.svg"
+    "/index.html",
+    "/style.css",
+    "/lib/sakura.css",
+    "/lib/marked.min.js",
+    "/lib/purify.min.js",
+    "/icons/icon.svg",
+    "/icons/icon.png",
+    "/icons/icon-white.svg",
+    "/icons/icon-white.png",
+    "/icons/icon-black.svg",
+    "/icons/icon-black.png",
+    "/fiches/index.json"
 ]
 
 self.addEventListener("install", (event) => {
@@ -44,16 +52,41 @@ self.addEventListener("fetch", (event) => {
   }
 
   // Pour tous les autres types de requête
+
+  if (event.request.url.includes("/fiches/")) {
+    // NETWORK FIRST, avec mise en cache
+    event.respondWith(
+
+      (async () => {
+        const cache = await caches.open(CACHE_NAME);
+
+        try {
+          const reponseReseau = await fetch(event.request)
+
+          cache.put(event.request, reponseReseau.clone());
+          return reponseReseau;
+
+        } catch (err) {
+          const cachedResponse = await cache.match(event.request.url);
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+          return new Response(null, { status: 404 });
+        }
+      })()
+    );
+    return;
+  }
+  
+  // CACHE FIRST (comportement existant, pour tout le reste)
   event.respondWith(
     (async () => {
       const cache = await caches.open(CACHE_NAME);
       const cachedResponse = await cache.match(event.request.url);
       if (cachedResponse) {
-        // On renvoie la réponse mise en cache si elle est disponible.
         return cachedResponse;
       }
-      // On répond avec une réponse HTTP au statut 404.
       return new Response(null, { status: 404 });
-    })(),
+    })()
   );
 });

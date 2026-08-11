@@ -5,22 +5,70 @@
         <meta name="viewport" content="width=device-width">
         
         <title>Fiches Bristol</title>
-        <link rel="icon" href="icon.svg">
+        <link rel="icon" href="icons/icon.svg">
+        <link rel="apple-touch-icon" href="icons/icon-white.png">
 
-        <link rel="stylesheet" href="sakura.css">
+        <link rel="stylesheet" href="lib/sakura.css">
         <link rel="stylesheet" href="style.css">
+
+        <script src="lib/marked.min.js"></script>
+        <script src="lib/purify.min.js"></script>
 
         <link rel="manifest" href="manifest.json">
     </head>
     <body>
-        <h1>Fiches Bristol</h1>
-        <p>Sélectionnez une fiche pour la visionner</p>
+        <section id="infos"></section>
 
-        <section id="fiches-list"></section>
+        <button id="btn-menu">☰</button>
 
-        <input type="file" id="file-input" accept=".json" style="display: none;">
+        <div id="menu-complet" class="cache">
+            <div id="menu-btns">
+                <button id="btn-menu-accueil" class="menu-btn">🏠 Accueil</button>
+                <button id="btn-menu-new" class="menu-btn">➕ Créer une fiche</button>
+                <input type="file" id="input-import" accept=".md" class="cache">
+                <button id="btn-menu-import" class="menu-btn">📥 Importer une fiche</button>
+            </div>
 
-        <script src="app.js" defers></script>
+            <nav id="menu"></nav>
+        </div>
+
+        <div id="accueil">
+            <h1>Fiches Bristol</h1>
+            <p>Sélectionnez une fiche dans le menu afin de la visualiser.</p>
+        </div>
+
+        <div id="content-complet" class="cache">
+            <div id="actions-content">
+                <button id="content-retour" class="content-btn">⇐ Retour</button>
+                <button id="content-exporter" class="content-btn">📦 Exporter</button>
+                <button id="content-modifier" class="cache">🖋️ Modifier</button>
+                <button id="content-supprimer" class="danger cache">🗑️ Supprimer</button>
+                <span id="content-locked" class="cache">🔒</span>
+            </div>
+            <div id="content"></div>
+        </div>
+
+        <div id="formulaire-fiche" class="cache">
+            <button id="form-retour">⇐ Retour</button>
+
+            <label for="form-matiere">Matière</label>
+            <select id="form-matiere"></select>
+            
+            <label for="form-categorie">Catégorie</label>
+            <input id="form-categorie" type="text" placeholder="Procédés d'écriture">
+            
+            <label for="form-emoji">Émoji</label>
+            <input id="form-emoji" type="text" placeholder="✒️">
+            
+            <label for="form-titre">Titre</label>
+            <input id="form-titre" type="text" placeholder="Accumulation">
+
+            <label for="form-contenu">Contenu (Markdown)</label>
+            <textarea id="form-contenu" placeholder="# Titre\n- liste\n| Citation\n..."></textarea>
+
+            <button id="form-enregistrer">Enregistrer</button></div>
+
+        <script src="app.js" defer></script>
         <script>
             if ("serviceWorker" in navigator) {
             navigator.serviceWorker.register("sw.js").then(

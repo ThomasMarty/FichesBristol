@@ -1,10 +1,14 @@
-ul {
+#menu, #menu-btns {
     border: 5px solid var(--color-text, #4a4a4a);
     border-radius: 15px;
     margin: 1vh;
     padding: 1vw;
     list-style: none;
     background-color: var(--color-background, #f0f0f0);
+}
+
+.cache {
+    display: none;
 }
 
 li {
@@ -16,4 +20,93 @@ li {
 li:hover {
     background-color: var(--color-hover, #e0e0e0);
     cursor: pointer;
+}
+
+#infos {
+    padding: 2vh;
+}
+
+.alerte {
+    background-color: var(--color-alert, #ffcccc);
+    border: 2px solid var(--color-alert-border, #ff0000);
+    border-radius: 10px;
+    padding: 1vh;
+}
+
+.erreur {
+    background-color: var(--color-alert, #ffc793);
+    border: 2px solid var(--color-alert-border, #ff7b00);
+    border-radius: 10px;
+    padding: 1vh;
+}
+
+.info {
+    background-color: var(--color-alert, #88e3ff);
+    border: 2px solid var(--color-alert-border, #00c3ff);
+    border-radius: 10px;
+    padding: 1vh;
+}
+
+/*=====[ MATIERES ]=====*/
+
+.menu-matiere-contenu.cache {
+    display: none;
+}
+
+.menu-matiere-contenu {
+    background-color: #cecece;
+    padding: 1vh;
+    margin: 1vh;
+    border-radius: 10px;
+}
+
+.menu-matiere-titre {
+    border-radius: 10px;
+    padding: 0.5vh;
+    color: var(--couleur-matiere);
+}
+
+.menu-matiere-g {
+    border-radius: 10px;
+    padding: 0.5vh;
+    border: 2px solid var(--couleur-matiere);
+    margin: 1vh;
+}
+
+.menu-matiere-titre:hover {
+    background-color: #e0e0e0;
+    cursor: pointer;
+}
+
+/*=====[ CATEGORIES ]=====*/
+
+.menu-categorie-contenu.cache {
+    display: none;
+}
+
+.menu-categorie-contenu {
+    padding: 1vh;
+    margin: 1vh;
+}
+
+.menu-categorie-titre {
+    border-radius: 10px;
+    padding: 0.5vh
+}
+
+.menu-categorie-titre:hover {
+    background-color: #e0e0e0;
+    cursor: pointer;
+}
+
+textarea {
+    height: 50vh;
+    resize: none;
+}
+
+#formulaire-fiche {
+    border: 5px solid var(--color-text, #4a4a4a);
+    border-radius: 10px;
+    margin: 1vh;
+    padding: 1vw;
 }
