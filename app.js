@@ -11,7 +11,7 @@ const content = document.getElementById("content");
 const contentComplet = document.getElementById("content-complet")
 const form = document.getElementById("formulaire-fiche");
 
-const PALETTE_DEFAUT = {"Autres": "#ffffff", "Français": "#ca0000", "Espagnol": "#f56613"};
+const PALETTE_DEFAUT = {"Autres": "#000000", "Français": "#ca0000", "Espagnol": "#f56613"};
 
 let ficheEnCours = null;
 let idEdition = null;
@@ -64,7 +64,7 @@ async function reponseToMetadonnees(reponse, nom) {
         return afficherErreur("Format CR/LF/CRLF imcompatible.");
     }
     
-    let fichePropre = texte.replace(`${resultat[0]}\n`, "");
+    let fichePropre = texte.replace(`${resultat[0]}`, "");
     let metadonneesBrutes = parserFrontmatter(resultat[1]);
     let metadonnees = { ...metadonneesBrutes, nom, source: "locked" };
 
@@ -76,16 +76,16 @@ async function reponseToFiche(reponse) {
 
     let resultat = "";
     if (texte.match(regexLF) !== null) {
-        let resultat = texte.match(regexLF);
+        resultat = texte.match(regexLF);
     } else if (texte.match(regexLF) === null && texte.match(regexCRLF) !== null) {
-        let resultat = texte.match(regexCRLF);
+        resultat = texte.match(regexCRLF);
     } else  if (texte.match(regexLF) === null && texte.match(regexCRLF) === null && texte.match(regexCR)  !== null) {
-        let resultat = texte.match(regexCR);
+        resultat = texte.match(regexCR);
     } else {
         return afficherErreur("Format CR/LF/CRLF imcompatible.");
     }
     
-    let fichePropre = texte.replace(`${resultat[0]}\n`, "");
+    let fichePropre = texte.replace(`${resultat[0]}`, "");
 
     return fichePropre;
 }
@@ -278,7 +278,8 @@ async function chargerMenu() {
             resetCouleur.textContent = "🔄️";
             resetCouleur.id = `reset-couleur-${nomMatiere}`;
             resetCouleur.classList.add("reset-couleur");
-            resetCouleur.addEventListener("click", () => {
+            resetCouleur.addEventListener("click", (event) => {
+                event.stopPropagation();
                 supprimerCouleurMatiere(nomMatiere);
                 return chargerMenu();
             })
@@ -330,12 +331,22 @@ async function chargerMenu() {
 
 function toggleMenu() {
     menuComplet.classList.toggle("cache");
+    document.body.classList.toggle("menu-ouvert");
 }
-
 document.addEventListener("DOMContentLoaded", () => {
     chargerMenu();
 })
-document.getElementById("btn-menu").addEventListener("click", toggleMenu)
+document.addEventListener("click", (event) => {
+    if (!menuComplet.classList.contains("cache") && !menuComplet.contains(event.target) && event.target !== document.getElementById("btn-menu")) {
+        toggleMenu();
+    }
+})
+document.getElementById("btn-menu").addEventListener("click", () => {
+    toggleMenu()
+})
+document.getElementById("btn-menu-fermer").addEventListener("click", () => {
+    toggleMenu()
+})
 document.getElementById("btn-menu-accueil").addEventListener("click", () => {
     afficherAccueil()
 })
@@ -349,14 +360,14 @@ document.getElementById("input-import").addEventListener("change", (event) => {
     const fichier = event.target.files[0];
     importerFiche(fichier);
 })
+document.getElementById("form-retour").addEventListener("click", () => {
+    afficherAccueil();
+})
 document.getElementById("form-enregistrer").addEventListener("click", () => {
     enregistrerFormulaire()
 })
-document.getElementById("form-retour").addEventListener("click", () => {
-    afficherMenu()
-})
 document.getElementById("content-retour").addEventListener("click", () => {
-    afficherAccueil()
+    afficherAccueil();
 })
 document.getElementById("content-exporter").addEventListener("click", () => {
     exporterFiche(ficheEnCours)
@@ -411,20 +422,20 @@ function importerFiche(fichier) {
     reader.onload = (event) => {
         const texte = event.target.result;
 
-        let resultat = "";
+        let resultat = null;
         if (texte.match(regexLF) !== null) {
-            let resultat = texte.match(regexLF);
+            resultat = texte.match(regexLF);
         } else if (texte.match(regexLF) === null && texte.match(regexCRLF) !== null) {
-            let resultat = texte.match(regexCRLF);
+            resultat = texte.match(regexCRLF);
         } else  if (texte.match(regexLF) === null && texte.match(regexCRLF) === null && texte.match(regexCR)  !== null) {
-            let resultat = texte.match(regexCR);
+            resultat = texte.match(regexCR);
         } else {
-            return afficherErreur("Format CR/LF/CRLF imcompatible.");
+            return afficherErreur("Format CR/LF/CRLF incompatible.");
         }
 
         if (resultat === null) {return afficherErreur("Frontmatter cassé ou incompatible.")}
 
-        let fichePropre = texte.replace(`${resultat[0]}\n`, "");
+        let fichePropre = texte.replace(`${resultat[0]}`, "");
         let metadonneesBrutes = parserFrontmatter(resultat[1]);
         let meta = { ...metadonneesBrutes, source: "local" };
 

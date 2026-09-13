@@ -1,112 +1,785 @@
-#menu, #menu-btns {
-    border: 5px solid var(--color-text, #4a4a4a);
-    border-radius: 15px;
-    margin: 1vh;
-    padding: 1vw;
-    list-style: none;
-    background-color: var(--color-background, #f0f0f0);
+/* ============================================================
+   Fiches Bristol — Design UI/UX
+   Inspiration : liseuses (Kindle / Kobo / Apple Books)
+   Esprit : papier chaud, lecture sereine, chrome minimal
+   ============================================================ */
+
+/* ---------- Variables ---------- */
+:root {
+  /* Palette papier / encre */
+  --bg: #f4efe6;            /* fond bibliothèque (lin chaud) */
+  --page: #fbf8f2;          /* la fiche elle-même (bristol) */
+  --page-edge: #efe8db;     /* bord de page */
+  --ink: #2a2620;           /* encre principale */
+  --ink-soft: #5c544a;      /* encre secondaire */
+  --ink-faint: #9a9082;     /* encre tertiaire / hints */
+  --line: #e3dccd;          /* filets */
+  --line-soft: #ece6da;
+
+  --accent: #6b4a2b;        /* brun cuir (reliure) */
+  --accent-soft: #a9826a;
+  --accent-bg: #efe6d8;
+
+  --danger: #9a3b2e;
+  --danger-bg: #f6e6e1;
+
+  --locked: #8a7a5c;
+
+  /* Typo */
+  --serif: "Iowan Old Style", "Palatino Linotype", "Palatino", "Book Antiqua", Georgia, "Times New Roman", serif;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", "Helvetica Neue", Arial, sans-serif;
+  --mono: "SF Mono", "JetBrains Mono", "Fira Code", ui-monospace, Menlo, Consolas, monospace;
+
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 16px;
+  --r-xl: 22px;
+
+  --shadow-page: 0 1px 2px rgba(60, 50, 35, 0.04), 0 8px 30px rgba(60, 50, 35, 0.08);
+  --shadow-soft: 0 2px 12px rgba(60, 50, 35, 0.08);
+  --shadow-float: 0 8px 28px rgba(60, 50, 35, 0.16);
+
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --maxw: 720px;
 }
 
-.cache {
-    display: none;
+/* ---------- Reset léger ---------- */
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
 }
 
-li {
-    margin: 0.5vh;
-    padding: 0.5vw;
-    border-radius: 10px;
+body {
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(120% 80% at 50% -10%, rgba(255, 250, 240, 0.6), transparent 60%),
+    radial-gradient(80% 60% at 100% 110%, rgba(180, 150, 110, 0.08), transparent 55%);
+  background-attachment: fixed;
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  /* Corrigé : centre chaque écran (#accueil, #content-complet, #formulaire-fiche...)
+     horizontalement dans la fenêtre, quelle que soit sa largeur naturelle */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
 }
 
-li:hover {
-    background-color: var(--color-hover, #e0e0e0);
-    cursor: pointer;
-}
+/* Utilitaire de masquage */
+.cache { display: none !important; }
 
+/* ============================================================
+   Barre d'alertes
+   ============================================================ */
 #infos {
-    padding: 2vh;
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  pointer-events: none;
+  width: min(92vw, 520px);
+}
+
+#info {
+  pointer-events: auto;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: alertIn 0.28s var(--ease);
+  box-shadow: var(--shadow-float);
 }
 
 .alerte {
-    background-color: var(--color-alert, #ffcccc);
-    border: 2px solid var(--color-alert-border, #ff0000);
-    border-radius: 10px;
-    padding: 1vh;
+  background: var(--accent-bg);
+  color: var(--accent);
+  border: 1px solid rgba(107, 74, 43, 0.18);
 }
 
 .erreur {
-    background-color: var(--color-alert, #ffc793);
-    border: 2px solid var(--color-alert-border, #ff7b00);
-    border-radius: 10px;
-    padding: 1vh;
+  background: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid rgba(154, 59, 46, 0.2);
 }
 
+/* Ajout : .info existe dans app.js (afficherInfo) mais manquait dans base44 */
 .info {
-    background-color: var(--color-alert, #88e3ff);
-    border: 2px solid var(--color-alert-border, #00c3ff);
-    border-radius: 10px;
-    padding: 1vh;
+  background: #e3f0f5;
+  color: #2a6b80;
+  border: 1px solid rgba(42, 107, 128, 0.2);
 }
 
-/*=====[ MATIERES ]=====*/
-
-.menu-matiere-contenu.cache {
-    display: none;
+@keyframes alertIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.menu-matiere-contenu {
-    background-color: #cecece;
-    padding: 1vh;
-    margin: 1vh;
-    border-radius: 10px;
+/* ============================================================
+   Bouton menu (hamburger flottant)
+   ============================================================ */
+#btn-menu {
+  position: fixed;
+  top: 18px;
+  left: 18px;
+  z-index: 60;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--page);
+  color: var(--ink);
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+  display: grid;
+  place-items: center;
+  transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease), background 0.2s var(--ease);
+}
+#btn-menu:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-float);
+}
+#btn-menu:active { transform: translateY(0) scale(0.96); }
+
+/* ============================================================
+   Menu latéral (coulissant, façon table des matières)
+   ============================================================ */
+#menu-complet {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 70;
+  width: min(86vw, 360px);
+  height: 100dvh;
+  background: var(--page);
+  border-right: 1px solid var(--line);
+  box-shadow: 12px 0 40px rgba(60, 50, 35, 0.14);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(-100%);
+  transition: transform 0.32s var(--ease);
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+#menu-complet:not(.cache) {
+  transform: translateX(0);
+}
+
+/* Corrigé : empêche le scroll du body (bounce iOS) de "fuiter" hors du menu.
+   body-no-scroll est ajoutée/retirée en JS quand le menu s'ouvre/ferme. */
+body.menu-ouvert {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
+
+/* Boutons du menu */
+#menu-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px 16px 12px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.menu-btn {
+  appearance: none;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 14.5px;
+  font-weight: 500;
+  text-align: left;
+  padding: 11px 14px;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: background 0.18s var(--ease), color 0.18s var(--ease), border-color 0.18s var(--ease);
+}
+.menu-btn:hover {
+  background: var(--accent-bg);
+  border-color: var(--line);
+}
+.menu-btn:active { background: #e6dcc9; }
+
+/* Navigation hiérarchique */
+#menu {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 8px 12px 24px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+#menu::-webkit-scrollbar { width: 8px; }
+#menu::-webkit-scrollbar-thumb { background: var(--line); border-radius: 8px; border: 2px solid var(--page); }
+
+/* .menu-matiere-g contient à plat : le titre, le sélecteur de couleur, le bouton
+   reset, PUIS .menu-matiere-contenu (l'arborescence des catégories).
+   On veut : titre + sélecteur + reset sur une même ligne, et .menu-matiere-contenu
+   qui repasse systématiquement à la ligne, pleine largeur, en dessous.
+   Technique : flex-wrap + forcer .menu-matiere-contenu à occuper 100% de la largeur,
+   ce qui le fait automatiquement passer à la ligne suivante. */
+.menu-matiere-g {
+  border-radius: var(--r-md);
+  padding: 4px 4px 4px 2px;
+  margin: 4px 2px 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.menu-matiere-g > .menu-matiere-contenu {
+  flex: 1 0 100%;
+  order: 10;
 }
 
 .menu-matiere-titre {
-    border-radius: 10px;
-    padding: 0.5vh;
-    color: var(--couleur-matiere);
+  /* Corrigé : utilise la variable injectée en JS plutôt qu'une couleur fixe */
+  color: var(--couleur-matiere, var(--ink-soft));
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 10px 10px 8px;
+  border-radius: var(--r-sm);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+  transition: background 0.18s var(--ease), filter 0.18s var(--ease);
+  user-select: none;
 }
-
-.menu-matiere-g {
-    border-radius: 10px;
-    padding: 0.5vh;
-    border: 2px solid var(--couleur-matiere);
-    margin: 1vh;
+.menu-matiere-titre::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+  opacity: 0.7;
 }
-
 .menu-matiere-titre:hover {
-    background-color: #e0e0e0;
-    cursor: pointer;
-}
-
-/*=====[ CATEGORIES ]=====*/
-
-.menu-categorie-contenu.cache {
-    display: none;
-}
-
-.menu-categorie-contenu {
-    padding: 1vh;
-    margin: 1vh;
+  background: var(--accent-bg);
+  filter: brightness(0.85);
 }
 
 .menu-categorie-titre {
-    border-radius: 10px;
-    padding: 0.5vh
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  cursor: pointer;
+  padding: 10px 10px 8px;
+  border-radius: var(--r-sm);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: color 0.18s var(--ease), background 0.18s var(--ease);
+  user-select: none;
+}
+.menu-categorie-titre::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1.5px solid var(--accent-soft);
+  flex-shrink: 0;
+}
+.menu-categorie-titre:hover { color: var(--accent); background: var(--accent-bg); }
+
+.menu-matiere-contenu {
+  padding-left: 14px;
+  border-left: 1px solid var(--line-soft);
+  margin: 0 0 2px 10px;
+  overflow: hidden;
+  transition: max-height 0.3s var(--ease);
+}
+.menu-categorie-contenu {
+  padding-left: 14px;
+  margin-left: 8px;
+  list-style: none;
 }
 
-.menu-categorie-titre:hover {
-    background-color: #e0e0e0;
-    cursor: pointer;
+.menu-fiche {
+  list-style: none;
+  font-family: var(--serif);
+  font-size: 15.5px;
+  color: var(--ink);
+  padding: 8px 12px;
+  margin: 2px 0;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: background 0.16s var(--ease), color 0.16s var(--ease), transform 0.16s var(--ease);
+}
+.menu-fiche:hover {
+  background: var(--accent-bg);
+  color: var(--accent);
+  transform: translateX(2px);
+}
+.menu-fiche:active { transform: translateX(0) scale(0.99); }
+
+/* ---------- Ajout : sélecteur de couleur + reset (absents du CSS base44) ---------- */
+/* Générés dynamiquement par chargerMenu() dans app.js, à côté de chaque titre de matière */
+.selecteur-couleur {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  cursor: pointer;
+  background: none;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+/* Neutralise le padding natif du swatch interne (Chrome/Edge) */
+.selecteur-couleur::-webkit-color-swatch-wrapper { padding: 0; border-radius: 50%; }
+.selecteur-couleur::-webkit-color-swatch { border: none; border-radius: 50%; }
+.selecteur-couleur::-moz-color-swatch { border: none; border-radius: 50%; }
+
+.reset-couleur {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: var(--page);
+  color: var(--ink-soft);
+  font-size: 12px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+  transition: background 0.15s var(--ease), transform 0.15s var(--ease);
+}
+.reset-couleur:hover { background: var(--accent-bg); }
+.reset-couleur:active { transform: scale(0.9); }
+
+/* ============================================================
+   Accueil
+   ============================================================ */
+#accueil {
+  min-height: 100dvh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 80px 24px;
+  animation: fadeUp 0.5s var(--ease);
+}
+#accueil h1 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(34px, 6vw, 52px);
+  letter-spacing: -0.01em;
+  margin: 0 0 14px;
+  color: var(--ink);
+}
+#accueil p {
+  font-family: var(--serif);
+  font-size: 17px;
+  color: var(--ink-soft);
+  max-width: 420px;
+  line-height: 1.7;
+  margin: 0;
+  user-select: none;
+}
+#accueil::before {
+  content: "";
+  display: block;
+  width: 44px;
+  height: 2px;
+  background: var(--accent-soft);
+  margin-bottom: 28px;
+  border-radius: 2px;
 }
 
-textarea {
-    height: 50vh;
-    resize: none;
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ============================================================
+   Vue lecture (la « fiche Bristol »)
+   ============================================================ */
+#content-complet {
+  min-height: 100dvh;
+  width: 100%;
+  padding: 78px 20px 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: fadeUp 0.4s var(--ease);
+}
+
+/* Barre d'actions */
+#actions-content {
+  position: sticky;
+  top: 16px;
+  z-index: 40;
+  width: 100%;
+  max-width: var(--maxw);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  margin-bottom: 22px;
+  background: rgba(251, 248, 242, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  box-shadow: var(--shadow-soft);
+  flex-wrap: wrap;
+}
+
+.content-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.18s var(--ease), color 0.18s var(--ease);
+}
+.content-btn:hover { background: var(--accent-bg); color: var(--accent); }
+.content-btn:active { transform: scale(0.97); }
+
+.content-btn.danger { color: var(--danger); }
+.content-btn.danger:hover { background: var(--danger-bg); }
+
+#content-locked {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--locked);
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--line-soft);
+  font-weight: 500;
+}
+
+/* La page elle-même */
+#content {
+  width: 100%;
+  max-width: var(--maxw);
+  background: var(--page);
+  border: 1px solid var(--page-edge);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-page);
+  padding: 52px 56px 64px;
+  font-family: var(--serif);
+  font-size: 18px;
+  line-height: 1.75;
+  color: var(--ink);
+  position: relative;
+  overflow-wrap: break-word;
+}
+#content::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--r-xl);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+  pointer-events: none;
+}
+
+/* ---------- Typographie du contenu Markdown ---------- */
+#content > *:first-child { margin-top: 0; }
+#content > *:last-child { margin-bottom: 0; }
+
+#content h1, #content h2, #content h3, #content h4 {
+  font-family: var(--serif);
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  margin: 1.6em 0 0.6em;
+}
+#content h1 { font-size: 1.9em; }
+#content h2 {
+  font-size: 1.45em;
+  padding-bottom: 0.25em;
+  border-bottom: 1px solid var(--line-soft);
+}
+#content h3 { font-size: 1.2em; }
+#content h4 { font-size: 1.05em; color: var(--ink-soft); }
+
+#content p { margin: 0 0 1.1em; }
+
+#content ul, #content ol { margin: 0 0 1.1em; padding-left: 1.4em; }
+#content li { margin: 0.35em 0; }
+#content li::marker { color: var(--accent-soft); }
+
+#content a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-color: var(--accent-soft);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  transition: color 0.15s var(--ease);
+}
+#content a:hover { color: var(--ink); }
+
+#content strong { font-weight: 700; color: var(--ink); }
+#content em { font-style: italic; }
+
+#content blockquote {
+  margin: 1.4em 0;
+  padding: 4px 0 4px 22px;
+  border-left: 3px solid var(--accent-soft);
+  color: var(--ink-soft);
+  font-style: italic;
+  background: linear-gradient(90deg, var(--accent-bg), transparent 60%);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+}
+#content blockquote p { margin: 0.5em 0; }
+
+#content code {
+  font-family: var(--mono);
+  font-size: 0.88em;
+  background: var(--line-soft);
+  padding: 2px 6px;
+  border-radius: 5px;
+  color: var(--accent);
+}
+#content pre {
+  background: #efe9dd;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 16px 18px;
+  overflow-x: auto;
+  font-size: 0.9em;
+  line-height: 1.6;
+  margin: 1.2em 0;
+}
+#content pre code {
+  background: transparent;
+  padding: 0;
+  color: var(--ink);
+}
+
+#content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.3em 0;
+  font-size: 0.95em;
+}
+#content th, #content td {
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line-soft);
+}
+#content th {
+  font-weight: 600;
+  color: var(--ink);
+  border-bottom: 2px solid var(--line);
+  font-family: var(--sans);
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+#content tr:last-child td { border-bottom: none; }
+#content tr:hover td { background: rgba(169, 130, 106, 0.05); }
+
+#content hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--line), transparent);
+  margin: 2em 0;
+}
+
+#content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--r-md);
+  margin: 1.2em 0;
+}
+
+/* ============================================================
+   Formulaire de création / édition
+   ============================================================ */
 #formulaire-fiche {
-    border: 5px solid var(--color-text, #4a4a4a);
-    border-radius: 10px;
-    margin: 1vh;
-    padding: 1vw;
+  min-height: 100dvh;
+  width: 100%;
+  padding: 78px 20px 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: fadeUp 0.4s var(--ease);
+}
+
+#formulaire-fiche > #form-retour {
+  align-self: center;
+  margin-bottom: 18px;
+}
+
+#form-retour {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: var(--page);
+  color: var(--ink-soft);
+  font-family: var(--sans);
+  font-size: 16px;
+  font-weight: 500;
+  padding: 9px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+  transition: background 0.18s var(--ease), color 0.18s var(--ease), transform 0.18s var(--ease);
+}
+#form-retour:hover { background: var(--accent-bg); color: var(--accent); }
+#form-retour:active { transform: scale(0.97); }
+
+#formulaire-fiche label {
+  display: block;
+  font-family: var(--sans);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 18px 0 7px;
+  max-width: var(--maxw);
+  width: 100%;
+}
+
+#formulaire-fiche input[type="text"],
+#formulaire-fiche textarea,
+#formulaire-fiche select {
+  width: 100%;
+  max-width: var(--maxw);
+  font-family: var(--sans);
+  font-size: 15.5px;
+  color: var(--ink);
+  background: var(--page);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 12px 15px;
+  margin-left: auto;
+  margin-right: auto;
+  transition: border-color 0.18s var(--ease), box-shadow 0.18s var(--ease), background 0.18s var(--ease);
+  outline: none;
+}
+#formulaire-fiche input[type="text"]::placeholder,
+#formulaire-fiche textarea::placeholder { color: var(--ink-faint); }
+
+#formulaire-fiche input[type="text"]:focus,
+#formulaire-fiche textarea:focus,
+#formulaire-fiche select:focus {
+  border-color: var(--accent-soft);
+  box-shadow: 0 0 0 3px rgba(169, 130, 106, 0.15);
+  background: #fffdf8;
+}
+
+/* Ajout : style du <select> matière, absent du CSS base44 */
+#formulaire-fiche select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' stroke='%235c544a' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  padding-right: 40px;
+  cursor: pointer;
+}
+
+#formulaire-fiche textarea {
+  min-height: 280px;
+  resize: vertical;
+  font-family: var(--mono);
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+#form-enregistrer {
+  appearance: none;
+  border: none;
+  background: var(--accent);
+  color: #fbf8f2;
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 13px 28px;
+  border-radius: 999px;
+  cursor: pointer;
+  margin-top: 26px;
+  box-shadow: 0 6px 18px rgba(107, 74, 43, 0.25);
+  transition: transform 0.18s var(--ease), box-shadow 0.18s var(--ease), background 0.18s var(--ease);
+  align-self: center;
+  width: auto;
+}
+#form-enregistrer:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(107, 74, 43, 0.32);
+  background: #5d3f24;
+}
+#form-enregistrer:active { transform: translateY(0) scale(0.98); }
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+@media (max-width: 640px) {
+  #content { padding: 34px 26px 44px; font-size: 17px; }
+  #actions-content { flex-wrap: wrap; border-radius: var(--r-lg); }
+  .content-btn { font-size: 13px; padding: 7px 11px; }
+  #accueil h1 { font-size: 38px; }
+  #accueil p { font-size: 16px; }
+  #formulaire-fiche label { font-size: 12px; }
+}
+
+@media (min-width: 900px) {
+  #content-complet,
+  #formulaire-fiche { padding-top: 92px; }
+}
+
+/* Respect du mouvement réduit */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Sélection de texte assortie */
+::selection {
+  background: rgba(169, 130, 106, 0.25);
+  color: var(--ink);
 }

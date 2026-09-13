@@ -1,4 +1,4 @@
-const version = "2026.08.11";
+const version = "2026.09.13-2";
 const CACHE_NAME = `fiches-bristol-${version}`;
 
 const APP_STATIC_RESOURCES = [
@@ -19,6 +19,7 @@ const APP_STATIC_RESOURCES = [
 ]
 
 self.addEventListener("install", (event) => {
+    self.skipWaiting();
     event.waitUntil(
         (async () => {
             const cache = await caches.open(CACHE_NAME);
@@ -44,7 +45,7 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-  // Lorsqu'on cherche une page HTML
+  
   if (event.request.mode === "navigate") {
     // On renvoie à la page index.html
     event.respondWith(caches.match("/"));

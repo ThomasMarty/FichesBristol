@@ -8,7 +8,6 @@
         <link rel="icon" href="icons/icon.svg">
         <link rel="apple-touch-icon" href="icons/icon-white.png">
 
-        <link rel="stylesheet" href="lib/sakura.css">
         <link rel="stylesheet" href="style.css">
 
         <script src="lib/marked.min.js"></script>
@@ -18,11 +17,12 @@
     </head>
     <body>
         <section id="infos"></section>
-
+        
         <button id="btn-menu">☰</button>
 
         <div id="menu-complet" class="cache">
             <div id="menu-btns">
+                <button id="btn-menu-fermer" class="menu-btn">❌ Fermer</button>
                 <button id="btn-menu-accueil" class="menu-btn">🏠 Accueil</button>
                 <button id="btn-menu-new" class="menu-btn">➕ Créer une fiche</button>
                 <input type="file" id="input-import" accept=".md" class="cache">
@@ -41,8 +41,8 @@
             <div id="actions-content">
                 <button id="content-retour" class="content-btn">⇐ Retour</button>
                 <button id="content-exporter" class="content-btn">📦 Exporter</button>
-                <button id="content-modifier" class="cache">🖋️ Modifier</button>
-                <button id="content-supprimer" class="danger cache">🗑️ Supprimer</button>
+                <button id="content-modifier" class="content-btn cache">🖋️ Modifier</button>
+                <button id="content-supprimer" class="content-btn danger cache">🗑️ Supprimer</button>
                 <span id="content-locked" class="cache">🔒</span>
             </div>
             <div id="content"></div>
@@ -55,18 +55,19 @@
             <select id="form-matiere"></select>
             
             <label for="form-categorie">Catégorie</label>
-            <input id="form-categorie" type="text" placeholder="Procédés d'écriture">
+            <input id="form-categorie" type="text" placeholder="Procédés d'écriture" required>
             
             <label for="form-emoji">Émoji</label>
             <input id="form-emoji" type="text" placeholder="✒️">
             
             <label for="form-titre">Titre</label>
-            <input id="form-titre" type="text" placeholder="Accumulation">
+            <input id="form-titre" type="text" placeholder="Accumulation" required>
 
             <label for="form-contenu">Contenu (Markdown)</label>
             <textarea id="form-contenu" placeholder="# Titre\n- liste\n| Citation\n..."></textarea>
 
-            <button id="form-enregistrer">Enregistrer</button></div>
+            <button id="form-enregistrer">Enregistrer</button>
+        </div>
 
         <script src="app.js" defer></script>
         <script>
