@@ -1,4 +1,4 @@
-const version = "2026.09.18";
+const version = "2026.09.18-2";
 const CACHE_NAME = `fiches-bristol-${version}`;
 
 const APP_STATIC_RESOURCES = [
@@ -75,26 +75,30 @@ self.addEventListener("fetch", (event) => {
   // Pour tous les autres types de requête
 
   if (event.request.url.includes("/fiches/")) {
-    // NETWORK FIRST, avec mise en cache
-    event.respondWith(
-
-      (async () => {
+      // CACHE FIRST (avec fallback réseau en dernier recours)
+event.respondWith(
+    (async () => {
         const cache = await caches.open(CACHE_NAME);
 
-        try {
-          const reponseReseau = await fetch(event.request)
-
-          cache.put(event.request, reponseReseau.clone());
-          return reponseReseau;
-
-        } catch (err) {
-          const cachedResponse = await cache.match(event.request.url);
-          if (cachedResponse) {
+        // Essai 1 : chercher en cache
+        const cachedResponse = await cache.match(event.request.url);
+        if (cachedResponse) {
             return cachedResponse;
-          }
-          return new Response(null, { status: 404 });
         }
-      })()
+
+        // Essai 2 : dernier recours, aller chercher sur le réseau
+        try {
+            const reponseReseau = await fetch(event.request);
+            // On met en cache au passage, pour que la prochaine fois
+            // ce fichier soit trouvé directement à l'étape 1
+            cache.put(event.request, reponseReseau.clone());
+            return reponseReseau;
+        } catch (err) {
+            // Si même le réseau échoue, on renvoie une vraie Response,
+            // jamais null/undefined
+            return new Response("Ressource indisponible.", { status: 404 });
+        }
+    })()
     );
     return;
   }
