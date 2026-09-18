@@ -6,7 +6,6 @@ const APP_STATIC_RESOURCES = [
     "/app.js",
     "/index.html",
     "/style.css",
-    "/lib/sakura.css",
     "/lib/marked.min.js",
     "/lib/purify.min.js",
     "/icons/icon.svg",
