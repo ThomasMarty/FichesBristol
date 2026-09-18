@@ -1,4 +1,4 @@
-const version = "2026.09.13-2";
+const version = "2026.09.18";
 const CACHE_NAME = `fiches-bristol-${version}`;
 
 const APP_STATIC_RESOURCES = [
@@ -47,10 +47,30 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   
   if (event.request.mode === "navigate") {
-    // On renvoie à la page index.html
-    event.respondWith(caches.match("/"));
-    return;
-  }
+    event.respondWith(
+        (async () => {
+            const cache = await caches.open(CACHE_NAME);
+            
+            // Essai 1 : chercher la clé "/"
+            let reponse = await cache.match("/");
+            if (reponse) return reponse;
+            
+            // Essai 2 : chercher la clé "/index.html" (fallback si "/" ne matche pas)
+            reponse = await cache.match("/index.html");
+            if (reponse) return reponse;
+            
+            // Essai 3 : dernier recours, aller chercher sur le réseau
+            try {
+                return await fetch(event.request);
+            } catch (err) {
+                // Si même le réseau échoue (hors ligne), on renvoie une vraie Response,
+                // jamais null/undefined, pour ne jamais casser respondWith()
+                return new Response("Page indisponible hors ligne.", { status: 503 });
+            }
+        })()
+        );
+        return;
+    }
 
   // Pour tous les autres types de requête
 
