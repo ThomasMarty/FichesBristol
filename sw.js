@@ -1,9 +1,10 @@
-const version = "2026.09.18-2";
+const version = "2026.09.18-3";
 const CACHE_NAME = `fiches-bristol-${version}`;
 
 const APP_STATIC_RESOURCES = [
     "/",
     "/app.js",
+    "/manifest.json",
     "/index.html",
     "/style.css",
     "/lib/marked.min.js",
