@@ -76,29 +76,27 @@ self.addEventListener("fetch", (event) => {
 
   if (event.request.url.includes("/fiches/")) {
       // CACHE FIRST (avec fallback réseau en dernier recours)
-event.respondWith(
-    (async () => {
+    event.respondWith(
+      (async () => {
         const cache = await caches.open(CACHE_NAME);
 
-        // Essai 1 : chercher en cache
-        const cachedResponse = await cache.match(event.request.url);
-        if (cachedResponse) {
-            return cachedResponse;
-        }
-
-        // Essai 2 : dernier recours, aller chercher sur le réseau
         try {
-            const reponseReseau = await fetch(event.request);
-            // On met en cache au passage, pour que la prochaine fois
-            // ce fichier soit trouvé directement à l'étape 1
-            cache.put(event.request, reponseReseau.clone());
-            return reponseReseau;
+          const reponseReseau = await fetch(event.request);
+          // On met en cache au passage, pour que la prochaine fois
+          // ce fichier soit trouvé directement à l'étape 1
+          cache.put(event.request, reponseReseau.clone());
+          return reponseReseau;
         } catch (err) {
-            // Si même le réseau échoue, on renvoie une vraie Response,
-            // jamais null/undefined
-            return new Response("Ressource indisponible.", { status: 404 });
+          // Si même le réseau échoue, on renvoie une vraie Response,
+          // jamais null/undefined
+          const cachedResponse = await cache.match(event.request.url);
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+
+          return new Response("Ressource indisponible.", { status: 404 });
         }
-    })()
+      })()
     );
     return;
   }
