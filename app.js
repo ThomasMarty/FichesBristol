@@ -520,6 +520,45 @@ async function chargerMenu() {
 
                             reorganiserFiche(ficheBougee, fiche, deposerApres);
                         })
+
+                        let minuteur = null;
+                        let departX = 0;
+                        let departY = 0;
+                        let dragTactile = false;
+
+                        function arreterAppui() {
+                            clearTimeout(minuteur);
+                            minuteur = null;
+                            dragTactile = false;
+                            ficheMenu.classList.remove("en-drag");
+                        }
+
+                        ficheMenu.addEventListener("pointerdown", (e) => {
+                            if (e.pointerType !== "touch") {return;}
+
+                            departX = e.clientX;
+                            departY = e.clientY;
+
+                            minuteur = setTimeout(() => {
+                                dragTactile = true;
+                                ficheMenu.classList.add("en-drag");
+                                if (navigator.vibrate) {navigator.vibrate(30);}
+                            }, 400);
+                        });
+
+                        ficheMenu.addEventListener("pointermove", (e) => {
+                            if (e.pointerType !== "touch") {return;}
+                            if (dragTactile || minuteur === null) {return;}
+
+                            const bougeX = Math.abs(e.clientX - departX);
+                            const bougeY = Math.abs(e.clientY - departY);
+                            if (bougeX > 10 || bougeY > 10) {
+                                arreterAppui();
+                            }
+                        });
+
+                        ficheMenu.addEventListener("pointerup", arreterAppui);
+                        ficheMenu.addEventListener("pointercancel", arreterAppui);
                     };
 
                     ficheMenu.addEventListener("click", () => {
