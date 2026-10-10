@@ -249,6 +249,9 @@ function reorganiserFiche(FicheBougee, FicheCible, deposerApres) {
 
     if (oldIndex === indexCible) {return;}
 
+    FicheBougee.matiere = FicheCible.matiere;
+    FicheBougee.categorie = FicheCible.categorie;
+
     tableau.splice(oldIndex, 1)
 
     if (oldIndex > indexCible) {
@@ -308,6 +311,26 @@ async function chargerMenu() {
             matiereTitre.style.setProperty("--couleur-matiere", couleur);
             matiereTitre.addEventListener("click", () => {
                 matiereContenu.classList.toggle("cache");
+            });
+            matiereTitre.addEventListener("dragover", (e) => {
+                e.preventDefault();
+                matiereTitre.classList.add("drag-over");
+            });
+            matiereTitre.addEventListener("dragleave", () => {
+                matiereTitre.classList.remove("drag-over");
+            });
+            matiereTitre.addEventListener("drop", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                matiereTitre.classList.remove("drag-over");
+
+                let idFiche = e.dataTransfer.getData("id-fiche");
+                if (!idFiche) {return;}
+
+                let ficheBougee = obtenirFichesLocales().find((f) => f.id === idFiche);
+                if (!ficheBougee) {return;}
+
+                deplacerFiche(idFiche, nomMatiere, ficheBougee.categorie);
             });
 
             let matiereG = document.createElement("div");
@@ -387,52 +410,54 @@ async function chargerMenu() {
                     ficheMenu.textContent = `${fiche.emoji} ${fiche.titre}`;
                     ficheMenu.classList.add("menu-fiche");
 
-                    ficheMenu.draggable = true;
-                    ficheMenu.addEventListener("dragstart", (e) => {
-                        e.stopPropagation();
-                        e.dataTransfer.setData("id-fiche", fiche.id);
-                        ficheMenu.classList.add("en-drag")
-                    })
-                    ficheMenu.addEventListener("dragend", () => {
-                        ficheMenu.classList.remove("en-drag")
-                    })
+                    if (fiche.source === "local") {
+                        ficheMenu.draggable = true;
+                        ficheMenu.addEventListener("dragstart", (e) => {
+                            e.stopPropagation();
+                            e.dataTransfer.setData("id-fiche", fiche.id);
+                            ficheMenu.classList.add("en-drag")
+                        })
+                        ficheMenu.addEventListener("dragend", () => {
+                            ficheMenu.classList.remove("en-drag")
+                        })
 
-                    ficheMenu.addEventListener("dragover", (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
+                        ficheMenu.addEventListener("dragover", (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
 
-                        const rect = ficheMenu.getBoundingClientRect();
-                        const milieu = rect.top + rect.height / 2;
+                            const rect = ficheMenu.getBoundingClientRect();
+                            const milieu = rect.top + rect.height / 2;
 
-                        if (e.clientY > milieu) {
-                            ficheMenu.classList.add("drag-over-bas");
-                            ficheMenu.classList.remove("drag-over-haut");
-                        } else {
-                            ficheMenu.classList.add("drag-over-haut");
-                            ficheMenu.classList.remove("drag-over-bas");
-                        }
-                    })
+                            if (e.clientY > milieu) {
+                                ficheMenu.classList.add("drag-over-bas");
+                                ficheMenu.classList.remove("drag-over-haut");
+                            } else {
+                                ficheMenu.classList.add("drag-over-haut");
+                                ficheMenu.classList.remove("drag-over-bas");
+                            }
+                        })
 
-                    ficheMenu.addEventListener("dragleave", () => {
-                        ficheMenu.classList.remove("drag-over-haut", "drag-over-bas");
-                    })
+                        ficheMenu.addEventListener("dragleave", () => {
+                            ficheMenu.classList.remove("drag-over-haut", "drag-over-bas");
+                        })
 
-                    ficheMenu.addEventListener("drop", (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
+                        ficheMenu.addEventListener("drop", (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
 
-                        const deposerApres = ficheMenu.classList.contains("drag-over-bas");
-                        ficheMenu.classList.remove("drag-over-haut", "drag-over-bas");
+                            const deposerApres = ficheMenu.classList.contains("drag-over-bas");
+                            ficheMenu.classList.remove("drag-over-haut", "drag-over-bas");
 
-                        let idFicheBougee = e.dataTransfer.getData("id-fiche");
-                        if (idFicheBougee === fiche.id) {return;}
+                            let idFicheBougee = e.dataTransfer.getData("id-fiche");
+                            if (idFicheBougee === fiche.id) {return;}
 
-                        let tableau = obtenirFichesLocales();
-                        let ficheBougee = tableau.find((f) => f.id === idFicheBougee);
-                        if (!ficheBougee) {return;}
+                            let tableau = obtenirFichesLocales();
+                            let ficheBougee = tableau.find((f) => f.id === idFicheBougee);
+                            if (!ficheBougee) {return;}
 
-                        reorganiserFiche(ficheBougee, fiche, deposerApres);
-                    })
+                            reorganiserFiche(ficheBougee, fiche, deposerApres);
+                        })
+                    };
 
                     ficheMenu.addEventListener("click", () => {
                         chercherFiche(fiche)
