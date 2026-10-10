@@ -65,8 +65,6 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-  /* Corrigé : centre chaque écran (#accueil, #content-complet, #formulaire-fiche...)
-     horizontalement dans la fenêtre, quelle que soit sa largeur naturelle */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -119,7 +117,6 @@ body {
   border: 1px solid rgba(154, 59, 46, 0.2);
 }
 
-/* Ajout : .info existe dans app.js (afficherInfo) mais manquait dans base44 */
 .info {
   background: #e3f0f5;
   color: #2a6b80;
@@ -183,8 +180,6 @@ body {
   transform: translateX(0);
 }
 
-/* Corrigé : empêche le scroll du body (bounce iOS) de "fuiter" hors du menu.
-   body-no-scroll est ajoutée/retirée en JS quand le menu s'ouvre/ferme. */
 body.menu-ouvert {
   overflow: hidden;
   position: fixed;
@@ -233,12 +228,6 @@ body.menu-ouvert {
 #menu::-webkit-scrollbar { width: 8px; }
 #menu::-webkit-scrollbar-thumb { background: var(--line); border-radius: 8px; border: 2px solid var(--page); }
 
-/* .menu-matiere-g contient à plat : le titre, le sélecteur de couleur, le bouton
-   reset, PUIS .menu-matiere-contenu (l'arborescence des catégories).
-   On veut : titre + sélecteur + reset sur une même ligne, et .menu-matiere-contenu
-   qui repasse systématiquement à la ligne, pleine largeur, en dessous.
-   Technique : flex-wrap + forcer .menu-matiere-contenu à occuper 100% de la largeur,
-   ce qui le fait automatiquement passer à la ligne suivante. */
 .menu-matiere-g {
   border-radius: var(--r-md);
   padding: 4px 4px 4px 2px;
@@ -254,7 +243,6 @@ body.menu-ouvert {
 }
 
 .menu-matiere-titre {
-  /* Corrigé : utilise la variable injectée en JS plutôt qu'une couleur fixe */
   color: var(--couleur-matiere, var(--ink-soft));
   font-size: 13px;
   font-weight: 600;
@@ -324,6 +312,16 @@ body.menu-ouvert {
   list-style: none;
 }
 
+/* Conteneur catégorie entière : utilisé pour le drop "changer de catégorie" */
+.menu-categorie-general {
+  border-radius: var(--r-sm);
+  transition: background 0.15s var(--ease), box-shadow 0.15s var(--ease);
+}
+.menu-categorie-general.drag-over {
+  background: var(--accent-bg);
+  box-shadow: inset 0 0 0 1.5px var(--accent-soft);
+}
+
 .menu-fiche {
   list-style: none;
   font-family: var(--serif);
@@ -333,6 +331,7 @@ body.menu-ouvert {
   margin: 2px 0;
   border-radius: var(--r-sm);
   cursor: pointer;
+  position: relative;
   transition: background 0.16s var(--ease), color 0.16s var(--ease), transform 0.16s var(--ease);
 }
 .menu-fiche:hover {
@@ -342,8 +341,35 @@ body.menu-ouvert {
 }
 .menu-fiche:active { transform: translateX(0) scale(0.99); }
 
-/* ---------- Ajout : sélecteur de couleur + reset (absents du CSS base44) ---------- */
-/* Générés dynamiquement par chargerMenu() dans app.js, à côté de chaque titre de matière */
+/* Pendant un drag : la fiche qu'on déplace devient semi-transparente */
+.menu-fiche.en-drag {
+  opacity: 0.4;
+}
+
+/* Indicateurs de dépôt : une ligne d'accent en haut ou en bas de la fiche
+   survolée, pour montrer où la fiche déplacée va atterrir une fois lâchée. */
+.menu-fiche.drag-over-haut::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: -2px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+.menu-fiche.drag-over-bas::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: -2px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+/* ---------- Sélecteur de couleur + reset ---------- */
 .selecteur-couleur {
   appearance: none;
   -webkit-appearance: none;
@@ -357,7 +383,6 @@ body.menu-ouvert {
   flex-shrink: 0;
   overflow: hidden;
 }
-/* Neutralise le padding natif du swatch interne (Chrome/Edge) */
 .selecteur-couleur::-webkit-color-swatch-wrapper { padding: 0; border-radius: 50%; }
 .selecteur-couleur::-webkit-color-swatch { border: none; border-radius: 50%; }
 .selecteur-couleur::-moz-color-swatch { border: none; border-radius: 50%; }
@@ -708,7 +733,6 @@ body.menu-ouvert {
   background: #fffdf8;
 }
 
-/* Ajout : style du <select> matière, absent du CSS base44 */
 #formulaire-fiche select {
   appearance: none;
   -webkit-appearance: none;

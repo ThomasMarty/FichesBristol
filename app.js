@@ -11,7 +11,15 @@ const content = document.getElementById("content");
 const contentComplet = document.getElementById("content-complet")
 const form = document.getElementById("formulaire-fiche");
 
-const PALETTE_DEFAUT = {"Autres": "#000000", "Français": "#ca0000", "Espagnol": "#f56613"};
+const PALETTE_DEFAUT = {"Autres": "#000000",
+    "Français": "#ca0000",
+    "Mathématiques": "#fdcf00",
+    "Histoire-Géo": "#00dac7",
+    "Anglais": "#83ff6a",
+    "Espagnol": "#f56613",
+    "SVT": "#8a00da",
+    "Physique-Chimie": "#b4c8ff",
+    "Technologie": "#183bff"};
 
 let ficheEnCours = null;
 let idEdition = null;
@@ -91,7 +99,7 @@ async function reponseToFiche(reponse) {
 }
 
 function afficherAccueil () {
-    menuComplet.classList.add("cache");
+    fermerMenu();
     contentComplet.classList.add("cache");
     form.classList.add("cache");
     accueil.classList.remove("cache");
@@ -101,12 +109,12 @@ function afficherMenu () {
     accueil.classList.add("cache");
     contentComplet.classList.add("cache");
     form.classList.add("cache");
-    menuComplet.classList.remove("cache");
+    ouvrirMenu();
 }
 
 function afficherForm () {
     accueil.classList.add("cache");
-    menuComplet.classList.add("cache");
+    fermerMenu();
     contentComplet.classList.add("cache");
     form.classList.remove("cache");
 }
@@ -219,6 +227,49 @@ function remplirSelectMatieres(matiere = null) {
     })
 }
 
+function deplacerFiche(id, newMatiere, newCategorie) {
+    let fiches = obtenirFichesLocales();
+    let ficheBougee = fiches.find(f => f.id === id);
+
+    if (ficheBougee) {
+        ficheBougee.matiere = newMatiere;
+        ficheBougee.categorie = newCategorie;
+
+        sauvegarderFichesLocales(fiches);
+        chargerMenu();
+        afficherInfo(`Fiche déplacé dans ${newMatiere} ⇒ ${newCategorie} !`)
+    }
+}
+
+function reorganiserFiche(FicheBougee, FicheCible, deposerApres) {
+    let tableau = obtenirFichesLocales();
+
+    let oldIndex = tableau.findIndex((fiche) => fiche.id === FicheBougee.id);
+    let indexCible = tableau.findIndex((fiche) => fiche.id === FicheCible.id)
+
+    if (oldIndex === indexCible) {return;}
+
+    tableau.splice(oldIndex, 1)
+
+    if (oldIndex > indexCible) {
+        if (deposerApres) {
+            tableau.splice(indexCible+1, 0, FicheBougee);
+        } else {
+            tableau.splice(indexCible, 0, FicheBougee);
+        }
+    } else {
+        if (deposerApres) {
+            tableau.splice(indexCible, 0, FicheBougee);
+        } else {
+            tableau.splice(indexCible-1, 0, FicheBougee);
+        }
+    }
+
+    sauvegarderFichesLocales(tableau);
+    chargerMenu();
+    afficherInfo(`Fiche ${FicheBougee.titre} déplacée !`)
+}
+
 async function chargerMenu() {
     try {
         menu.innerHTML = "";
@@ -305,18 +356,87 @@ async function chargerMenu() {
                 categorieTitre.addEventListener("click", () => {
                     categorieContenu.classList.toggle("cache");
                 });
+
+                let categorieGeneral = document.createElement("div");
+                categorieGeneral.classList.add("menu-categorie-general");
+                categorieGeneral.id = `categorie-${nomCategorie}-${nomMatiere}-general`
+
+                categorieGeneral.addEventListener("dragover", (e) => {
+                    e.preventDefault();
+                    categorieGeneral.classList.add("drag-over");
+                })
+                categorieGeneral.addEventListener("dragleave", () => {
+                    categorieGeneral.classList.remove("drag-over");
+                })
+                categorieGeneral.addEventListener("drop", (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    categorieGeneral.classList.remove("drag-over");
+                    let idFiche = e.dataTransfer.getData("id-fiche");
+                    deplacerFiche(idFiche, nomMatiere, nomCategorie)
+                })
+
+                categorieGeneral.appendChild(categorieTitre);
+                categorieGeneral.appendChild(categorieContenu);
                 
-                document.getElementById(`matiere-${nomMatiere}-contenu`).appendChild(categorieTitre);
-                document.getElementById(`matiere-${nomMatiere}-contenu`).appendChild(categorieContenu);
+                matiereContenu.appendChild(categorieGeneral)
 
                 hierarchie[nomMatiere][nomCategorie].forEach((fiche) => {
 
                     let ficheMenu = document.createElement("li");
-                    ficheMenu.textContent = `${fiche.emoji} ${fiche.titre}`
+                    ficheMenu.textContent = `${fiche.emoji} ${fiche.titre}`;
                     ficheMenu.classList.add("menu-fiche");
+
+                    ficheMenu.draggable = true;
+                    ficheMenu.addEventListener("dragstart", (e) => {
+                        e.stopPropagation();
+                        e.dataTransfer.setData("id-fiche", fiche.id);
+                        ficheMenu.classList.add("en-drag")
+                    })
+                    ficheMenu.addEventListener("dragend", () => {
+                        ficheMenu.classList.remove("en-drag")
+                    })
+
+                    ficheMenu.addEventListener("dragover", (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        const rect = ficheMenu.getBoundingClientRect();
+                        const milieu = rect.top + rect.height / 2;
+
+                        if (e.clientY > milieu) {
+                            ficheMenu.classList.add("drag-over-bas");
+                            ficheMenu.classList.remove("drag-over-haut");
+                        } else {
+                            ficheMenu.classList.add("drag-over-haut");
+                            ficheMenu.classList.remove("drag-over-bas");
+                        }
+                    })
+
+                    ficheMenu.addEventListener("dragleave", () => {
+                        ficheMenu.classList.remove("drag-over-haut", "drag-over-bas");
+                    })
+
+                    ficheMenu.addEventListener("drop", (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        const deposerApres = ficheMenu.classList.contains("drag-over-bas");
+                        ficheMenu.classList.remove("drag-over-haut", "drag-over-bas");
+
+                        let idFicheBougee = e.dataTransfer.getData("id-fiche");
+                        if (idFicheBougee === fiche.id) {return;}
+
+                        let tableau = obtenirFichesLocales();
+                        let ficheBougee = tableau.find((f) => f.id === idFicheBougee);
+                        if (!ficheBougee) {return;}
+
+                        reorganiserFiche(ficheBougee, fiche, deposerApres);
+                    })
+
                     ficheMenu.addEventListener("click", () => {
                         chercherFiche(fiche)
-                        toggleMenu()
+                        fermerMenu()
                     })
                     document.getElementById(`categorie-${nomCategorie}-${nomMatiere}-contenu`).appendChild(ficheMenu);
                 })
@@ -329,9 +449,21 @@ async function chargerMenu() {
     }
 }
 
+function ouvrirMenu() {
+    menuComplet.classList.remove("cache");
+    document.body.classList.add("menu-ouvert");
+}
+
+function fermerMenu() {
+    menuComplet.classList.add("cache");
+    document.body.classList.remove("menu-ouvert");
+}
 function toggleMenu() {
-    menuComplet.classList.toggle("cache");
-    document.body.classList.toggle("menu-ouvert");
+    if (menuComplet.classList.contains("cache")) {
+        ouvrirMenu();
+    } else {
+        fermerMenu();
+    }
 }
 document.addEventListener("DOMContentLoaded", () => {
     chargerMenu();
@@ -387,7 +519,8 @@ function parserFrontmatter(frontmatter) {
 
     lignes.forEach((ligne) => {
         let [cle, value] = ligne.split(": ");
-        parametres[cle] = value;
+        if (value === undefined) {return afficherErreur("Frontmatter mal rédigé !")}
+        parametres[cle.trim()] = value.trim();
     });
     return parametres;
 }
@@ -417,6 +550,7 @@ function exporterFiche(fiche) {
 }
 
 function importerFiche(fichier) {
+    if (!fichier) return;
     const reader = new FileReader();
 
     reader.onload = (event) => {
@@ -546,11 +680,11 @@ function ouvrirFormulaire(fiche = null) {
 
 function enregistrerFormulaire() {
 
-    let matiere = document.getElementById("form-matiere").value
-    let categorie = document.getElementById("form-categorie").value
-    let emoji = document.getElementById("form-emoji").value
-    let titre = document.getElementById("form-titre").value
-    let contenu = document.getElementById("form-contenu").value
+    let matiere = document.getElementById("form-matiere").value !== "" ? document.getElementById("form-matiere").value : "Autres";
+    let categorie = document.getElementById("form-categorie").value !== "" ? document.getElementById("form-categorie").value : "Autres";
+    let emoji = document.getElementById("form-emoji").value !== "" ? document.getElementById("form-emoji").value : "❓";
+    let titre = document.getElementById("form-titre").value !== "" ? document.getElementById("form-titre").value : "Inconnu";
+    let contenu = document.getElementById("form-contenu").value;
 
     if (!idEdition) {
         ajouterFicheLocale(matiere, categorie, emoji, titre, contenu);

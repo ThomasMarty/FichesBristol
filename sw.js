@@ -1,4 +1,4 @@
-const version = "2026.09.18-3";
+const version = "2026.10.10-2";
 const CACHE_NAME = `fiches-bristol-${version}`;
 
 const APP_STATIC_RESOURCES = [
@@ -23,7 +23,7 @@ self.addEventListener("install", (event) => {
     event.waitUntil(
         (async () => {
             const cache = await caches.open(CACHE_NAME);
-            cache.addAll(APP_STATIC_RESOURCES);
+            await cache.addAll(APP_STATIC_RESOURCES);
         })(),
     );
 });
@@ -72,10 +72,8 @@ self.addEventListener("fetch", (event) => {
         return;
     }
 
-  // Pour tous les autres types de requête
-
   if (event.request.url.includes("/fiches/")) {
-      // CACHE FIRST (avec fallback réseau en dernier recours)
+      // NETWORK FIRST (repli sur le cache si hors ligne)
     event.respondWith(
       (async () => {
         const cache = await caches.open(CACHE_NAME);
@@ -84,12 +82,14 @@ self.addEventListener("fetch", (event) => {
           const reponseReseau = await fetch(event.request);
           // On met en cache au passage, pour que la prochaine fois
           // ce fichier soit trouvé directement à l'étape 1
-          cache.put(event.request, reponseReseau.clone());
+          if (reponseReseau.ok) {
+            cache.put(event.request, reponseReseau.clone());
+          }
           return reponseReseau;
         } catch (err) {
           // Si même le réseau échoue, on renvoie une vraie Response,
           // jamais null/undefined
-          const cachedResponse = await cache.match(event.request.url);
+          const cachedResponse = await cache.match(event.request);
           if (cachedResponse) {
             return cachedResponse;
           }
@@ -102,14 +102,24 @@ self.addEventListener("fetch", (event) => {
   }
   
   // CACHE FIRST (comportement existant, pour tout le reste)
-  event.respondWith(
+    event.respondWith(
     (async () => {
       const cache = await caches.open(CACHE_NAME);
-      const cachedResponse = await cache.match(event.request.url);
+      const cachedResponse = await cache.match(event.request);
       if (cachedResponse) {
         return cachedResponse;
       }
-      return new Response(null, { status: 404 });
+
+      try {
+        const reponseReseau = await fetch(event.request);
+
+        if (reponseReseau.ok) {
+          cache.put(event.request, reponseReseau.clone());
+        }
+        return reponseReseau;
+      } catch (err) {
+        return new Response("Ressource indisponible.", { status: 404 });
+      }
     })()
   );
 });
