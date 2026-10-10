@@ -981,6 +981,13 @@ function afficherFiche(fiche) {
     let htmlSecu = DOMPurify.sanitize(htmlBrut);
     content.innerHTML = htmlSecu;
 
+    content.querySelectorAll("table").forEach((table) => {
+        const enveloppe = document.createElement("div");
+        enveloppe.classList.add("table-scroll");
+        table.parentNode.insertBefore(enveloppe, table);
+        enveloppe.appendChild(table);
+    });
+
     renderMathInElement(content, {
         delimiters: [
             { left: "$$", right: "$$", display: true },
