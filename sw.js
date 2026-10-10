@@ -1,4 +1,4 @@
-const version = "2026.10.10-9";
+const version = "2026.10.10-10";
 const CACHE_NAME = `fiches-bristol-${version}`;
 
 const APP_STATIC_RESOURCES = [
@@ -53,6 +53,7 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
         (async () => {
             const cache = await caches.open(CACHE_NAME);
+            const url = new URL(event.request.url)
             
             // Uniquement pour l'accueil : on sert l'app depuis le cache
             if (url.pathname === "/" || url.pathname === "/index.html") {
