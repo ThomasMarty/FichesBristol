@@ -12,14 +12,52 @@ const contentComplet = document.getElementById("content-complet")
 const form = document.getElementById("formulaire-fiche");
 
 const PALETTE_DEFAUT = {"Autres": "#000000",
+
+    // LITTERAIRE, LINGUISTIQUE & HUMANITES
     "Français": "#ca0000",
-    "Mathématiques": "#fdcf00",
-    "Histoire-Géo": "#00dac7",
+
+    "Philosophie": "#800000",
+
     "Anglais": "#83ff6a",
     "Espagnol": "#f56613",
-    "SVT": "#8a00da",
+    "Allemand": "#753900",
+    "Italien": "#3a7502",
+    "Chinois": "#ff4d40",
+
+    "LLCER": "#7cc6f7",
+    "HLP": "#b30000",
+
+    "Latin": "#eb9191",
+    "Grec ancien": "#969696",
+
+    // SCIENTIFIQUE & TECHNOLOGIQUE
+
+    "Mathématiques": "#fdcf00",
     "Physique-Chimie": "#b4c8ff",
-    "Technologie": "#183bff"};
+    "SVT": "#8a00da",
+
+    "Enseignement Scientifique": "#59639e",
+    "Technologie": "#183bff",
+    "SI": "#c9ca66",
+    "NSI": "#b052ee",
+    
+    "Biologie-Écologie": "#84ffa3",
+    "Sciences et Technologiques Spécialisées": "#10006b",
+
+    // SCIENCES HUMAINES, ÉCONOMIQUES & CITOYENNETE
+
+    "Histoire-Géographie": "#00dac7",
+    "EMC": "#6ed5fd",
+    
+    "SES": "#00da0b",
+    "HGGSP": "#0095da",
+
+    "Économie-Droit": "#fa84f0",
+    "Économie-Gestion": "#397e9e",
+
+    "Sciences de gestion et numérique": "#3a00da",
+    "Management": "#7ec1e0"
+}
 
 let ficheEnCours = null;
 let idEdition = null;
@@ -217,14 +255,39 @@ function remplirSelectMatieres(matiere = null) {
     select.innerHTML = "";
 
     Object.keys(PALETTE_DEFAUT).forEach((nomMatiere) => {
+
+        // Insérer une ligne d'information
+        if (nomMatiere === "Français") {
+            let séparateur = document.createElement("option");
+            séparateur.textContent = "──────── LITTÉRAIRE, LINGUISTIQUE & HUMANITÉS ────────";
+            séparateur.disabled = true;
+            select.appendChild(séparateur);
+
+        } else if (nomMatiere === "Mathématiques") {
+            let séparateur = document.createElement("option");
+            séparateur.textContent = "──────── SCIENTIFIQUE & TECHNOLOGIQUE ────────";
+            séparateur.disabled = true;
+            select.appendChild(séparateur);
+
+        } else if (nomMatiere === "Histoire-Géographie") {
+            let séparateur = document.createElement("option");
+            séparateur.textContent = "──────── SCIENCES HUMAINES, ÉCONOMIQUES & CITOYENNETÉ ────────";
+            séparateur.disabled = true;
+            select.appendChild(séparateur);
+
+        }
+
+        // Création de l'option
         let objet = document.createElement("option");
         objet.value = nomMatiere;
         objet.textContent = nomMatiere;
 
-        if (matiere !== null && nomMatiere === matiere) {objet.selected = "selected"}
-
+        if (matiere !== null && nomMatiere === matiere) {
+            objet.selected = true; 
+        }
+        
         select.appendChild(objet);
-    })
+    });
 }
 
 function deplacerFiche(id, newMatiere, newCategorie) {
