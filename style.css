@@ -329,7 +329,7 @@ body.menu-ouvert {
 .menu-fiche {
   list-style: none;
   font-family: var(--serif);
-  font-size: 15.5px;
+  font-size: 16px;
   color: var(--ink);
   padding: 8px 12px;
   margin: 2px 0;
@@ -715,7 +715,7 @@ body.menu-ouvert {
   width: 100%;
   max-width: var(--maxw);
   font-family: var(--sans);
-  font-size: 15.5px;
+  font-size: 16px;
   color: var(--ink);
   background: var(--page);
   border: 1px solid var(--line);

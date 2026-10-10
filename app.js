@@ -61,6 +61,18 @@ const PALETTE_DEFAUT = {"Autres": "#000000",
 
 let ficheEnCours = null;
 let idEdition = null;
+let dernierDragTactile = 0;
+
+function nettoyerSurbrillances() {
+    document.querySelectorAll(".drag-over, .drag-over-haut, .drag-over-bas").forEach((el) => {
+        el.classList.remove("drag-over", "drag-over-haut", "drag-over-bas");
+    });
+}
+
+// Pendant un drag tactile, on bloque le défilement de la page
+document.addEventListener("touchmove", (e) => {
+    if (document.querySelector(".menu-fiche.en-drag")) {e.preventDefault();}
+}, { passive: false });
 
 function viderAlertes() {
     let info = document.getElementById("info")
@@ -371,6 +383,7 @@ async function chargerMenu() {
             matiereTitre.textContent = nomMatiere;
             matiereTitre.classList.add("menu-matiere-titre");
             matiereTitre.id = `matiere-${nomMatiere}-titre`;
+            matiereTitre.dataset.matiere = nomMatiere;
             matiereTitre.style.setProperty("--couleur-matiere", couleur);
             matiereTitre.addEventListener("click", () => {
                 matiereContenu.classList.toggle("cache");
@@ -446,6 +459,8 @@ async function chargerMenu() {
                 let categorieGeneral = document.createElement("div");
                 categorieGeneral.classList.add("menu-categorie-general");
                 categorieGeneral.id = `categorie-${nomCategorie}-${nomMatiere}-general`
+                categorieGeneral.dataset.matiere = nomMatiere;
+                categorieGeneral.dataset.categorie = nomCategorie;
 
                 categorieGeneral.addEventListener("dragover", (e) => {
                     e.preventDefault();
@@ -475,6 +490,7 @@ async function chargerMenu() {
 
                     if (fiche.source === "local") {
                         ficheMenu.draggable = true;
+                        ficheMenu.dataset.id = fiche.id;
                         ficheMenu.addEventListener("dragstart", (e) => {
                             e.stopPropagation();
                             e.dataTransfer.setData("id-fiche", fiche.id);
@@ -529,8 +545,34 @@ async function chargerMenu() {
                         function arreterAppui() {
                             clearTimeout(minuteur);
                             minuteur = null;
+                            if (dragTactile) {dernierDragTactile = Date.now();}
                             dragTactile = false;
                             ficheMenu.classList.remove("en-drag");
+                            nettoyerSurbrillances();
+                        }
+
+                        function deposerSur(cible, y) {
+                            const ficheCible = cible.closest(".menu-fiche");
+                            if (ficheCible && ficheCible.dataset.id) {
+                                if (ficheCible === ficheMenu) {return;}
+                                const cibleObjet = obtenirFichesLocales().find((f) => f.id === ficheCible.dataset.id);
+                                if (!cibleObjet) {return;}
+                                const rect = ficheCible.getBoundingClientRect();
+                                const deposerApres = y > rect.top + rect.height / 2;
+                                reorganiserFiche(fiche, cibleObjet, deposerApres);
+                                return;
+                            }
+
+                            const titreMatiere = cible.closest(".menu-matiere-titre");
+                            if (titreMatiere) {
+                                deplacerFiche(fiche.id, titreMatiere.dataset.matiere, fiche.categorie);
+                                return;
+                            }
+
+                            const categorie = cible.closest(".menu-categorie-general");
+                            if (categorie) {
+                                deplacerFiche(fiche.id, categorie.dataset.matiere, categorie.dataset.categorie);
+                            }
                         }
 
                         ficheMenu.addEventListener("pointerdown", (e) => {
@@ -548,20 +590,54 @@ async function chargerMenu() {
 
                         ficheMenu.addEventListener("pointermove", (e) => {
                             if (e.pointerType !== "touch") {return;}
-                            if (dragTactile || minuteur === null) {return;}
 
-                            const bougeX = Math.abs(e.clientX - departX);
-                            const bougeY = Math.abs(e.clientY - departY);
-                            if (bougeX > 10 || bougeY > 10) {
-                                arreterAppui();
+                            if (!dragTactile) {
+                                if (minuteur === null) {return;}
+                                if (Math.abs(e.clientX - departX) > 10 || Math.abs(e.clientY - departY) > 10) {
+                                    arreterAppui();
+                                }
+                                return;
                             }
+
+                            nettoyerSurbrillances();
+                            const cible = document.elementFromPoint(e.clientX, e.clientY);
+                            if (!cible) {return;}
+
+                            const ficheCible = cible.closest(".menu-fiche");
+                            if (ficheCible && ficheCible.dataset.id && ficheCible !== ficheMenu) {
+                                const rect = ficheCible.getBoundingClientRect();
+                                if (e.clientY > rect.top + rect.height / 2) {
+                                    ficheCible.classList.add("drag-over-bas");
+                                } else {
+                                    ficheCible.classList.add("drag-over-haut");
+                                }
+                                return;
+                            }
+
+                            const titreMatiere = cible.closest(".menu-matiere-titre");
+                            if (titreMatiere) {
+                                titreMatiere.classList.add("drag-over");
+                                return;
+                            }
+
+                            const categorie = cible.closest(".menu-categorie-general");
+                            if (categorie) {categorie.classList.add("drag-over");}
                         });
 
-                        ficheMenu.addEventListener("pointerup", arreterAppui);
+                        ficheMenu.addEventListener("pointerup", (e) => {
+                            if (e.pointerType === "touch" && dragTactile) {
+                                const cible = document.elementFromPoint(e.clientX, e.clientY);
+                                arreterAppui();
+                                if (cible) {deposerSur(cible, e.clientY);}
+                                return;
+                            }
+                            arreterAppui();
+                        });
                         ficheMenu.addEventListener("pointercancel", arreterAppui);
                     };
 
                     ficheMenu.addEventListener("click", () => {
+                        if (Date.now() - dernierDragTactile < 500) {return;}
                         chercherFiche(fiche)
                         fermerMenu()
                     })
