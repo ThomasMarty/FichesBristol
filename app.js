@@ -805,7 +805,7 @@ document.getElementById("input-import-lot").addEventListener("change", (event) =
     event.target.value = "";
 })
 document.getElementById("form-retour").addEventListener("click", () => {
-    afficherAccueil();
+    annulerFormulaire();
 })
 document.getElementById("form-enregistrer").addEventListener("click", () => {
     enregistrerFormulaire()
@@ -1072,7 +1072,7 @@ function enregistrerFormulaire() {
     let titre = document.getElementById("form-titre").value !== "" ? document.getElementById("form-titre").value : "Inconnu";
     let contenu = document.getElementById("form-contenu").value;
 
-        if (!idEdition) {
+    if (!idEdition) {
         ajouterFicheLocale(matiere, categorie, emoji, titre, contenu);
         chargerMenu();
         afficherAccueil();
@@ -1090,13 +1090,26 @@ function enregistrerFormulaire() {
 }
 
 function annulerFormulaire() {
-    afficherAccueil();
+    let idCible = idEdition;
+    if (!idCible && typeof ficheEnCours !== "undefined" && ficheEnCours) {
+        idCible = ficheEnCours.id;
+    }
 
-    idEdition = null;
     document.getElementById("form-categorie").value = "";
     document.getElementById("form-emoji").value = "";
     document.getElementById("form-titre").value = "";
     document.getElementById("form-contenu").value = "";
         
     remplirSelectMatieres();
+    chargerMenu();
+
+    const ficheMaj = obtenirFichesLocales().find((f) => f.id == idCible);
+
+    if (ficheMaj) {
+        afficherFiche(ficheMaj);
+    } else {
+        afficherAccueil();
+    }
+    
+    idEdition = null;
 }
