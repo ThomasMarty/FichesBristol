@@ -79,7 +79,7 @@ body {
    ============================================================ */
 #infos {
   position: fixed;
-  top: 14px;
+  top: calc(14px + env(safe-area-inset-top));
   left: 50%;
   transform: translateX(-50%);
   z-index: 100;
@@ -133,7 +133,7 @@ body {
    ============================================================ */
 #btn-menu {
   position: fixed;
-  top: 18px;
+  top: calc(18px + env(safe-area-inset-top));;
   left: 18px;
   z-index: 60;
   width: 46px;
@@ -496,7 +496,7 @@ body.menu-ouvert {
 /* Barre d'actions */
 #actions-content {
   position: sticky;
-  top: 16px;
+  top: calc(16px + env(safe-area-inset-top));
   z-index: 40;
   width: 100%;
   max-width: var(--maxw);
@@ -652,6 +652,9 @@ body.menu-ouvert {
   border-collapse: collapse;
   margin: 1.3em 0;
   font-size: 0.95em;
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 #content th, #content td {
   text-align: left;
@@ -666,6 +669,7 @@ body.menu-ouvert {
   font-size: 0.85em;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 #content tr:last-child td { border-bottom: none; }
 #content tr:hover td { background: rgba(169, 130, 106, 0.05); }
@@ -809,7 +813,7 @@ body.menu-ouvert {
    ============================================================ */
 @media (max-width: 640px) {
   #content { padding: 34px 26px 44px; font-size: 17px; }
-  #actions-content { flex-wrap: wrap; border-radius: var(--r-lg); }
+  #actions-content { flex-wrap: wrap; border-radius: var(--r-lg); padding-left: 62px; }
   .content-btn { font-size: 13px; padding: 7px 11px; }
   #accueil h1 { font-size: 38px; }
   #accueil p { font-size: 16px; }

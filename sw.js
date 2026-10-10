@@ -1,4 +1,4 @@
-const version = "2026.10.10-10";
+const version = "2026.10.10-11";
 const CACHE_NAME = `fiches-bristol-${version}`;
 
 const APP_STATIC_RESOURCES = [
