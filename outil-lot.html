@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Outil de lot — Fiches Bristol</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        main { width: 100%; max-width: 720px; padding: 40px 20px; }
+        ul { list-style: none; padding: 0; }
+        li { margin: 6px 0; }
+        button, input[type="text"] { font-size: 16px; padding: 10px 14px; margin: 6px 6px 6px 0; }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>Créer un lot .bristol</h1>
+        <input id="nom-lot" type="text" placeholder="Nom du lot">
+        <button id="tout-cocher">Tout cocher / décocher</button>
+        <ul id="liste"></ul>
+        <button id="creer">📦 Télécharger le lot</button>
+    </main>
+    <script src="outil-lot.js"></script>
+</body>
+</html>

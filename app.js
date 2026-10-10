@@ -695,6 +695,14 @@ document.getElementById("input-import").addEventListener("change", (event) => {
     const fichier = event.target.files[0];
     importerFiche(fichier);
 })
+document.getElementById("btn-menu-import-lot").addEventListener("click", () => {
+    document.getElementById("input-import-lot").click();
+})
+document.getElementById("input-import-lot").addEventListener("change", (event) => {
+    const fichier = event.target.files[0];
+    importerLot(fichier);
+    event.target.value = "";
+})
 document.getElementById("form-retour").addEventListener("click", () => {
     afficherAccueil();
 })
@@ -782,6 +790,44 @@ function importerFiche(fichier) {
         afficherInfo(`Fiche ${meta.titre} ajoutée !`)
     };
         
+    reader.readAsText(fichier);
+}
+
+function importerLot(fichier) {
+    if (!fichier) return;
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+        let lot;
+        try {
+            lot = JSON.parse(event.target.result);
+        } catch (err) {
+            return afficherErreur("Ce fichier n'est pas un lot valide.");
+        }
+
+        if (!lot || lot.format !== "bristol" || !Array.isArray(lot.fiches) || lot.fiches.length === 0) {
+            return afficherErreur("Lot .bristol invalide ou vide.");
+        }
+
+        let compteur = 0;
+        lot.fiches.forEach((f) => {
+            if (!f || typeof f.titre !== "string" || typeof f.contenu !== "string") {return;}
+
+            ajouterFicheLocale(
+                String(f.matiere || "Autres"),
+                String(f.categorie || "Autres"),
+                String(f.emoji || "❓"),
+                f.titre,
+                f.contenu
+            );
+            compteur++;
+        });
+
+        chargerMenu();
+        afficherAccueil();
+        afficherInfo(`${compteur} fiche(s) importée(s) !`);
+    };
+
     reader.readAsText(fichier);
 }
 

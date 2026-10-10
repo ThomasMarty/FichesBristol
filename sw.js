@@ -1,4 +1,4 @@
-const version = "2026.10.10-5";
+const version = "2026.10.10-7";
 const CACHE_NAME = `fiches-bristol-${version}`;
 
 const APP_STATIC_RESOURCES = [
@@ -51,20 +51,21 @@ self.addEventListener("fetch", (event) => {
         (async () => {
             const cache = await caches.open(CACHE_NAME);
             
-            // Essai 1 : chercher la clé "/"
-            let reponse = await cache.match("/");
-            if (reponse) return reponse;
-            
-            // Essai 2 : chercher la clé "/index.html" (fallback si "/" ne matche pas)
-            reponse = await cache.match("/index.html");
-            if (reponse) return reponse;
-            
-            // Essai 3 : dernier recours, aller chercher sur le réseau
+            // Uniquement pour l'accueil : on sert l'app depuis le cache
+            if (url.pathname === "/" || url.pathname === "/index.html") {
+                let reponse = await cache.match("/");
+                if (reponse) return reponse;
+
+                reponse = await cache.match("/index.html");
+                if (reponse) return reponse;
+            }
+
+            // Toute autre page (outil-lot.html...) : réseau, sinon cache
             try {
                 return await fetch(event.request);
             } catch (err) {
-                // Si même le réseau échoue (hors ligne), on renvoie une vraie Response,
-                // jamais null/undefined, pour ne jamais casser respondWith()
+                const enCache = await cache.match(event.request);
+                if (enCache) return enCache;
                 return new Response("Page indisponible hors ligne.", { status: 503 });
             }
         })()
