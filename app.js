@@ -110,6 +110,8 @@ const PALETTE_DEFAUT = {"Autres": "#000000",
 let ficheEnCours = null;
 let idEdition = null;
 let dernierDragTactile = 0;
+let modeSelection = false;
+const selection = new Set();
 
 function nettoyerSurbrillances() {
     document.querySelectorAll(".drag-over, .drag-over-haut, .drag-over-bas").forEach((el) => {
@@ -279,6 +281,45 @@ function supprimerFicheLocale(id) {
 
     let filtre = tableau.filter((fiche) => fiche.id !== id)
     sauvegarderFichesLocales(filtre);
+}
+
+function supprimerFichesLocales(ids) {
+    const tableau = obtenirFichesLocales();
+    const filtre = tableau.filter((fiche) => !ids.includes(fiche.id));
+    sauvegarderFichesLocales(filtre);
+}
+
+function majBarreSelection() {
+    document.getElementById("btn-selection-supprimer").textContent = `🗑️ Supprimer (${selection.size})`;
+}
+
+function entrerModeSelection() {
+    modeSelection = true;
+    selection.clear();
+    menuComplet.classList.add("mode-selection");
+    document.getElementById("barre-selection").classList.remove("cache");
+    document.querySelectorAll(".menu-fiche-check").forEach((c) => { c.checked = false; });
+    majBarreSelection();
+}
+
+function quitterModeSelection() {
+    modeSelection = false;
+    selection.clear();
+    menuComplet.classList.remove("mode-selection");
+    document.getElementById("barre-selection").classList.add("cache");
+    document.querySelectorAll(".menu-fiche-check").forEach((c) => { c.checked = false; });
+}
+
+function basculerSelection(id, ficheMenu) {
+    const check = ficheMenu.querySelector(".menu-fiche-check");
+    if (selection.has(id)) {
+        selection.delete(id);
+        check.checked = false;
+    } else {
+        selection.add(id);
+        check.checked = true;
+    }
+    majBarreSelection();
 }
 
 function obtenirCouleurMatiere(nomMatiere) {
@@ -539,6 +580,13 @@ async function chargerMenu() {
                     if (fiche.source === "local") {
                         ficheMenu.draggable = true;
                         ficheMenu.dataset.id = fiche.id;
+
+                        const check = document.createElement("input");
+                        check.type = "checkbox";
+                        check.classList.add("menu-fiche-check");
+                        check.checked = selection.has(fiche.id);
+                        ficheMenu.prepend(check);
+
                         ficheMenu.addEventListener("dragstart", (e) => {
                             e.stopPropagation();
                             e.dataTransfer.setData("id-fiche", fiche.id);
@@ -686,6 +734,10 @@ async function chargerMenu() {
 
                     ficheMenu.addEventListener("click", () => {
                         if (Date.now() - dernierDragTactile < 500) {return;}
+                        if (modeSelection) {
+                            if (fiche.source === "local") {basculerSelection(fiche.id, ficheMenu);}
+                            return;
+                        }
                         chercherFiche(fiche)
                         fermerMenu()
                     })
@@ -708,6 +760,7 @@ function ouvrirMenu() {
 function fermerMenu() {
     menuComplet.classList.add("cache");
     document.body.classList.remove("menu-ouvert");
+    quitterModeSelection();
 }
 function toggleMenu() {
     if (menuComplet.classList.contains("cache")) {
@@ -767,9 +820,30 @@ document.getElementById("content-modifier").addEventListener("click", () => {
     ouvrirFormulaire(ficheEnCours)
 })
 document.getElementById("content-supprimer").addEventListener("click", () => {
+    if (!confirm(`Supprimer la fiche « ${ficheEnCours.titre} » définitivement ?`)) {return;}
     supprimerFicheLocale(ficheEnCours.id);
     chargerMenu();
     afficherAccueil();
+})
+document.getElementById("btn-menu-selection").addEventListener("click", () => {
+    if (modeSelection) {quitterModeSelection();} else {entrerModeSelection();}
+})
+document.getElementById("btn-selection-annuler").addEventListener("click", () => {
+    quitterModeSelection();
+})
+document.getElementById("btn-selection-supprimer").addEventListener("click", () => {
+    if (selection.size === 0) {return afficherErreur("Aucune fiche sélectionnée.");}
+
+    const n = selection.size;
+    const message = n === 1
+        ? "Supprimer cette fiche définitivement ?"
+        : `Supprimer ces ${n} fiches définitivement ?`;
+    if (!confirm(message)) {return;}
+
+    supprimerFichesLocales([...selection]);
+    quitterModeSelection();
+    chargerMenu();
+    afficherInfo(`${n} fiche(s) supprimée(s) !`);
 })
 
 function parserFrontmatter(frontmatter) {
@@ -991,14 +1065,21 @@ function enregistrerFormulaire() {
     let titre = document.getElementById("form-titre").value !== "" ? document.getElementById("form-titre").value : "Inconnu";
     let contenu = document.getElementById("form-contenu").value;
 
-    if (!idEdition) {
+        if (!idEdition) {
         ajouterFicheLocale(matiere, categorie, emoji, titre, contenu);
+        chargerMenu();
+        afficherAccueil();
     } else {
         modifierFicheLocale(idEdition, {matiere, categorie, emoji, titre, contenu});
+        const ficheMaj = obtenirFichesLocales().find((f) => f.id === idEdition);
+        chargerMenu();
+        if (ficheMaj) {
+            afficherFiche(ficheMaj);
+        } else {
+            afficherAccueil();
+        }
+        idEdition = null;
     }
-
-    chargerMenu();
-    afficherAccueil()
 }
 
 function annulerFormulaire() {

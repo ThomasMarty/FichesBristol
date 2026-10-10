@@ -411,6 +411,29 @@ body.menu-ouvert {
 .reset-couleur:hover { background: var(--accent-bg); }
 .reset-couleur:active { transform: scale(0.9); }
 
+.menu-fiche-check {
+  display: none;
+  pointer-events: none;
+  margin-right: 8px;
+  accent-color: var(--accent);
+}
+#menu-complet.mode-selection .menu-fiche-check {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+#barre-selection {
+  display: flex;
+  gap: 6px;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line-soft);
+  background: var(--page);
+}
+#barre-selection .menu-btn { flex: 1; text-align: center; }
+
+.menu-btn.danger { color: var(--danger); }
+.menu-btn.danger:hover { background: var(--danger-bg); }
+
 /* ============================================================
    Accueil
    ============================================================ */
