@@ -11,6 +11,54 @@ const content = document.getElementById("content");
 const contentComplet = document.getElementById("content-complet")
 const form = document.getElementById("formulaire-fiche");
 
+// Extension marked : protège les formules LaTeX du traitement Markdown
+function echapperHtml(texte) {
+    return texte
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+}
+
+marked.use({
+    extensions: [
+        {
+            // Formule en bloc : $$ ... $$ (peut tenir sur plusieurs lignes)
+            name: "mathBloc",
+            level: "block",
+            start(src) { return src.indexOf("$$"); },
+            tokenizer(src) {
+                const match = /^\$\$\n?([\s\S]+?)\n?\$\$[ \t]*(?:\n|$)/.exec(src);
+                if (match) {
+                    return { type: "mathBloc", raw: match[0], text: match[1] };
+                }
+            },
+            renderer(token) {
+                return `<div>$$${echapperHtml(token.text)}$$</div>\n`;
+            }
+        },
+        {
+            // Formule dans le texte : $$ ... $$ ou $ ... $
+            name: "mathInline",
+            level: "inline",
+            start(src) { return src.indexOf("$"); },
+            tokenizer(src) {
+                let match = /^\$\$([^\n]+?)\$\$/.exec(src);
+                if (match) {
+                    return { type: "mathInline", raw: match[0], text: match[1], double: true };
+                }
+                match = /^\$(?!\s)([^$\n]*?[^\s$])\$/.exec(src);
+                if (match) {
+                    return { type: "mathInline", raw: match[0], text: match[1], double: false };
+                }
+            },
+            renderer(token) {
+                const d = token.double ? "$$" : "$";
+                return `<span>${d}${echapperHtml(token.text)}${d}</span>`;
+            }
+        }
+    ]
+});
+
 const PALETTE_DEFAUT = {"Autres": "#000000",
 
     // LITTERAIRE, LINGUISTIQUE & HUMANITES
@@ -858,6 +906,14 @@ function afficherFiche(fiche) {
     let htmlBrut = marked.parse(fiche.contenu);
     let htmlSecu = DOMPurify.sanitize(htmlBrut);
     content.innerHTML = htmlSecu;
+
+    renderMathInElement(content, {
+        delimiters: [
+            { left: "$$", right: "$$", display: true },
+            { left: "$", right: "$", display: false }
+        ],
+        throwOnError: false
+    });
 
     accueil.classList.add("cache")
     form.classList.add("cache")

@@ -1,4 +1,4 @@
-const version = "2026.10.10-7";
+const version = "2026.10.10-8";
 const CACHE_NAME = `fiches-bristol-${version}`;
 
 const APP_STATIC_RESOURCES = [
@@ -9,6 +9,9 @@ const APP_STATIC_RESOURCES = [
     "/style.css",
     "/lib/marked.min.js",
     "/lib/purify.min.js",
+    "/lib/katex/katex.min.css",
+    "/lib/katex/katex.min.js",
+    "/lib/katex/contrib/auto-render.min.js",
     "/icons/icon.svg",
     "/icons/icon.png",
     "/icons/icon-white.svg",
